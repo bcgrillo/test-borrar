@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hola Mundo ✨</title>
+<style>
+  :root {
+    --c1: #ff0080;
+    --c2: #7928ca;
+    --c3: #00d4ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0f0f1a 100%);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #fff;
+  }
+  canvas { position: fixed; inset: 0; z-index: 0; }
+  .title {
+    position: relative;
+    z-index: 1;
+    font-size: clamp(3rem, 12vw, 8rem);
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    background: linear-gradient(120deg, var(--c1), var(--c2), var(--c3), var(--c1));
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: flow 6s ease infinite, float 4s ease-in-out infinite;
+    text-align: center;
+    padding: 0 1rem;
+  }
+  .subtitle {
+    position: relative;
+    z-index: 1;
+    margin-top: 1.5rem;
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    color: #cbd5e1;
+    opacity: 0.85;
+    min-height: 1.5em;
+    font-family: 'Courier New', monospace;
+  }
+  .cursor { color: var(--c3); animation: blink 1s steps(2) infinite; }
+  @keyframes flow { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+  <canvas id="bg"></canvas>
+  <h1 class="title">Hola Mundo</h1>
+  <p class="subtitle"><span id="typed"></span><span class="cursor">▋</span></p>
+
+<script>
+  // ---- Fondo de partículas ----
+  const canvas = document.getElementById('bg');
+  const ctx = canvas.getContext('2d');
+  let w, h, particles;
+  const N = 90;
+
+  function resize() {
+    w = canvas.width = innerWidth;
+    h = canvas.height = innerHeight;
+  }
+  function init() {
+    resize();
+    particles = Array.from({ length: N }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      r: Math.random() * 2 + 1,
+    }));
+  }
+  function tick() {
+    ctx.clearRect(0, 0, w, h);
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > w) p.vx *= -1;
+      if (p.y < 0 || p.y > h) p.vy *= -1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(120,180,255,0.6)';
+      ctx.fill();
+      for (let j = i + 1; j < particles.length; j++) {
+        const q = particles[j];
+        const dx = p.x - q.x, dy = p.y - q.y;
+        const d = Math.hypot(dx, dy);
+        if (d < 120) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y);
+          ctx.strokeStyle = 'rgba(120,180,255,' + (0.15 * (1 - d / 120)) + ')';
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize', resize);
+  init(); tick();
+
+  // ---- Efecto máquina de escribir ----
+  const phrases = [
+    'Bienvenido a mi página de prueba 🚀',
+    'Hecha con HTML, CSS y JS vanilla',
+    '¡Y ahora en GitHub Pages! 🌐',
+    'Copilot CLI al rescate 🤖',
+  ];
+  const el = document.getElementById('typed');
+  let pi = 0, ci = 0, deleting = false;
+  function type() {
+    const cur = phrases[pi];
+    el.textContent = deleting ? cur.slice(0, --ci) : cur.slice(0, ++ci);
+    if (!deleting && ci === cur.length) { deleting = true; setTimeout(type, 1600); return; }
+    if (deleting && ci === 0) { deleting = false; pi = (pi + 1) % phrases.length; }
+    setTimeout(type, deleting ? 45 : 80);
+  }
+  type();
+</script>
+</body>
+</html>
