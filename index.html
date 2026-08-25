@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" type="image/png" href="PoetaIcon.png" />
 <title>Hola Mundo ✨</title>
 <style>
   :root {
@@ -22,6 +23,18 @@
     color: #fff;
   }
   canvas { position: fixed; inset: 0; z-index: 0; }
+  #poeta {
+    position: relative;
+    z-index: 1;
+    width: clamp(80px, 14vw, 140px);
+    height: auto;
+    margin-bottom: 1.5rem;
+    border-radius: 50%;
+    box-shadow: 0 0 25px rgba(0,212,255,0.5), 0 0 60px rgba(255,0,128,0.25);
+    animation: float 4s ease-in-out infinite, spin 18s linear infinite;
+    background: radial-gradient(circle, rgba(255,255,255,0.06), transparent 70%);
+  }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   .title {
     position: relative;
     z-index: 1;
@@ -55,6 +68,7 @@
 </head>
 <body>
   <canvas id="bg"></canvas>
+  <img id="poeta" src="PoetaIcon.png" alt="Poeta icon" />
   <h1 class="title">Hola Mundo</h1>
   <p class="subtitle"><span id="typed"></span><span class="cursor">▋</span></p>
 
@@ -83,6 +97,13 @@
     ctx.clearRect(0, 0, w, h);
     for (let i = 0; i < particles.length; i++) {
       const p = particles[i];
+      // repulsión respecto al ratón
+      const mdx = p.x - mouse.x, mdy = p.y - mouse.y;
+      const md = Math.hypot(mdx, mdy);
+      if (md < 140 && md > 0) {
+        const f = (140 - md) / 140 * 0.6;
+        p.x += (mdx / md) * f; p.y += (mdy / md) * f;
+      }
       p.x += p.vx; p.y += p.vy;
       if (p.x < 0 || p.x > w) p.vx *= -1;
       if (p.y < 0 || p.y > h) p.vy *= -1;
@@ -102,9 +123,37 @@
         }
       }
     }
+    drawTrail();
     requestAnimationFrame(tick);
   }
   addEventListener('resize', resize);
+
+  // ---- Efecto de ratón: rastro de chispas + partículas reaccionan ----
+  const mouse = { x: -9999, y: -9999 };
+  let trail = [];
+  addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX; mouse.y = e.clientY;
+    for (let k = 0; k < 2; k++) {
+      trail.push({
+        x: mouse.x + (Math.random() - 0.5) * 8,
+        y: mouse.y + (Math.random() - 0.5) * 8,
+        life: 1,
+        hue: 180 + Math.random() * 140,
+      });
+    }
+  });
+  function drawTrail() {
+    for (let i = trail.length - 1; i >= 0; i--) {
+      const t = trail[i];
+      t.life -= 0.025;
+      if (t.life <= 0) { trail.splice(i, 1); continue; }
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, t.life * 6, 0, Math.PI * 2);
+      ctx.fillStyle = 'hsla(' + t.hue + ', 100%, 65%, ' + t.life + ')';
+      ctx.fill();
+    }
+  }
+
   init(); tick();
 
   // ---- Efecto máquina de escribir ----
@@ -112,7 +161,9 @@
     'Bienvenido a mi página de prueba 🚀',
     'Hecha con HTML, CSS y JS vanilla',
     '¡Y ahora en GitHub Pages! 🌐',
-    'Copilot CLI al rescate 🤖',
+    '"Solo sé que no sé nada" — Sócrates 🦉',
+    '"El que tiene por qué vivir, soporta casi cualquier cómo" — Nietzsche ⚡',
+    '"La vida sin reflexión no merece vivirse" — Platón 🏛️',
   ];
   const el = document.getElementById('typed');
   let pi = 0, ci = 0, deleting = false;
